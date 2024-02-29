@@ -20,26 +20,25 @@ class KMeans(MRJob):
         # Initialize k random centroids in the mapper
         self.centroids = [(random.uniform(0, 1), random.uniform(0, 1)) for _ in range(self.options.k)]
 
-   def mapper(self, _, line):
-    # Split the line into fields using tabs
-    fields = line.split('\t')
+    def mapper(self, _, line):
+        # Split the line into fields using tabs
+        fields = line.split('\t')
 
-    # Check if there are at least four values
-    if len(fields) >= 4:
-        # Unpack the four values from the line
-        userID, movieID, rating, timestamp = map(int, fields[:4])
+        # Check if there are at least four values
+        if len(fields) >= 4:
+            # Unpack the four values from the line
+            userID, movieID, rating, timestamp = map(int, fields[:4])
 
-        # Rest of your mapper logic...
-        point = (userID, movieID)
-        centroid_index = min(range(self.options.k),
-                             key=lambda i: math.sqrt((point[0] - self.centroids[i][0])**2 +
-                                                    (point[1] - self.centroids[i][1])**2))
+            # Rest of your mapper logic...
+            point = (userID, movieID)
+            centroid_index = min(range(self.options.k),
+                                 key=lambda i: math.sqrt((point[0] - self.centroids[i][0])**2 +
+                                                        (point[1] - self.centroids[i][1])**2))
 
-        yield centroid_index, (point, 1)
-    else:
-        # Handle lines with fewer than four values as needed
-        pass
-
+            yield centroid_index, (point, 1)
+        else:
+            # Handle lines with fewer than four values as needed
+            pass
 
     def combiner(self, key, values):
         # Combine points locally before sending to reducers
