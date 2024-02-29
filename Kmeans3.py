@@ -50,9 +50,15 @@ class KMeans(MRJob):
         # Combine points globally and update centroids
         combined_point = (sum(v[0][0] for v in values), sum(v[0][1] for v in values))
         count = sum(v[1] for v in values)
-        new_centroid = (combined_point[0] / count, combined_point[1] / count)
 
-        yield None, new_centroid
+        # Check if count is not zero before performing division
+        if count != 0:
+            new_centroid = (combined_point[0] / count, combined_point[1] / count)
+            yield None, new_centroid
+        else:
+            # Handle the case when count is zero (optional)
+            # You can choose to emit a special value or skip this centroid
+            pass
 
 if __name__ == '__main__':
     KMeans.run()
