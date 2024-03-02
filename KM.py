@@ -5,10 +5,10 @@ import math
 
 class KMeans(MRJob):
 
-    def configure_args(self):
-        super(KMeans, self).configure_args()
-        self.add_passthru_arg('--k', type=int, help='Number of clusters (k)')
-        self.add_passthru_arg('--iterations', type=int, default=10, help='Number of iterations')
+    def configure_options(self):
+        super(KMeans, self).configure_options()
+        self.add_passthrough_option('--k', type='int', help='Number of clusters (k)')
+        self.add_passthrough_option('--iterations', type='int', default=10, help='Number of iterations')
 
     def steps(self):
         return [MRStep(mapper_init=self.mapper_init,
@@ -19,7 +19,7 @@ class KMeans(MRJob):
     def mapper_init(self):
         # Initialize k random centroids in the mapper
         self.centroids = [(random.uniform(0, 1), random.uniform(0, 1)) for _ in range(self.options.k)]
-        print(f"Initial Centroids: {self.centroids}")
+        print("Initial Centroids: {}".format(self.centroids))
 
     def mapper(self, _, line):
         # Split the line into fields using tabs
@@ -37,7 +37,7 @@ class KMeans(MRJob):
                                                         (point[1] - self.centroids[i][1])**2))
 
             # Add a print statement to see which centroid each point is assigned to
-            print(f"Point {point} assigned to centroid {centroid_index}")
+            print("Point {} assigned to centroid {}".format(point, centroid_index))
 
             yield centroid_index, (point, 1)
         else:
@@ -50,7 +50,7 @@ class KMeans(MRJob):
         count = sum(v[1] for v in values)
 
         # Add a print statement to see the combined points locally
-        print(f"Combiner Output: Key={key}, Value={combined_point}, Count={count}")
+        print("Combiner Output: Key={}, Value={}, Count={}".format(key, combined_point, count))
 
         yield key, (combined_point, count)
 
@@ -59,12 +59,12 @@ class KMeans(MRJob):
         combined_point = (sum(v[0][0] for v in values), sum(v[0][1] for v in values))
         count = sum(v[1] for v in values)
 
+        # Add a print statement to see the combined points globally
+        print("Reducer Output: Key={}, New Centroid={}, Count={}".format(key, combined_point, count))
+
         # Check if count is not zero before performing division
         if count != 0:
             new_centroid = (combined_point[0] / count, combined_point[1] / count)
-            # Add a print statement to see the combined points globally
-            print(f"Reducer Output: Key={key}, New Centroid={new_centroid}, Count={count}")
-
             yield None, new_centroid
         else:
             # Handle the case when count is zero (optional)
