@@ -35,6 +35,9 @@ class KMeans(MRJob):
                                  key=lambda i: math.sqrt((point[0] - self.centroids[i][0])**2 +
                                                         (point[1] - self.centroids[i][1])**2))
 
+            # Add debug print statements
+            print("Point: {}, Assigned to Centroid: {}".format(point, centroid_index))
+
             yield centroid_index, (point, 1)
         else:
             # Handle lines with fewer than two values as needed
