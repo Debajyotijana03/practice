@@ -72,4 +72,4 @@ class KMeans(MRJob):
             pass
 
 if __name__ == '__main__':
-    KMeans.run()
+    KMeans().run()
