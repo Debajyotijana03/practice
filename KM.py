@@ -41,7 +41,7 @@ class KMeans(MRJob):
             yield centroid_index, (point, 1)
         else:
             # Handle lines with fewer than two values as needed
-            print("Invalid line: {}".format(line))
+            pass
 
     def combiner(self, key, values):
         # Combine points locally before sending to reducers
