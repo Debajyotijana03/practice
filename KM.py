@@ -19,6 +19,7 @@ class KMeans(MRJob):
     def mapper_init(self):
         # Initialize k random centroids in the mapper
         self.centroids = [(random.uniform(0, 1), random.uniform(0, 1)) for _ in range(self.options.k)]
+        print(f"Initial Centroids: {self.centroids}")
 
     def mapper(self, _, line):
         # Split the line into fields using tabs
@@ -35,6 +36,9 @@ class KMeans(MRJob):
                                  key=lambda i: math.sqrt((point[0] - self.centroids[i][0])**2 +
                                                         (point[1] - self.centroids[i][1])**2))
 
+            # Add a print statement to see which centroid each point is assigned to
+            print(f"Point {point} assigned to centroid {centroid_index}")
+
             yield centroid_index, (point, 1)
         else:
             # Handle lines with fewer than two values as needed
@@ -44,6 +48,10 @@ class KMeans(MRJob):
         # Combine points locally before sending to reducers
         combined_point = (sum(v[0][0] for v in values), sum(v[0][1] for v in values))
         count = sum(v[1] for v in values)
+
+        # Add a print statement to see the combined points locally
+        print(f"Combiner Output: Key={key}, Value={combined_point}, Count={count}")
+
         yield key, (combined_point, count)
 
     def reducer(self, key, values):
@@ -54,6 +62,9 @@ class KMeans(MRJob):
         # Check if count is not zero before performing division
         if count != 0:
             new_centroid = (combined_point[0] / count, combined_point[1] / count)
+            # Add a print statement to see the combined points globally
+            print(f"Reducer Output: Key={key}, New Centroid={new_centroid}, Count={count}")
+
             yield None, new_centroid
         else:
             # Handle the case when count is zero (optional)
