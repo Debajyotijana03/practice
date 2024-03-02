@@ -17,8 +17,8 @@ class KMeans(MRJob):
                        reducer=self.reducer)] * self.options.iterations
 
     def mapper_init(self):
-        # Initialize k random centroids in the mapper
-        self.centroids = [(random.uniform(0, 1), random.uniform(0, 1)) for _ in range(self.options.k)]
+        # Set initial centroids manually
+        self.centroids = [(0.1, 0.2), (0.3, 0.4), (0.5, 0.6)]
 
     def mapper(self, _, line):
         # Split the line into fields using tabs
