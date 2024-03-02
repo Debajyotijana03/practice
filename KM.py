@@ -17,8 +17,8 @@ class KMeans(MRJob):
                        reducer=self.reducer)] * self.options.iterations
 
     def mapper_init(self):
-        # Set initial centroids manually
-        self.centroids = [(0.1, 0.2), (0.3, 0.4), (0.5, 0.6)]
+        # Set initial centroids manually based on your dataset
+        self.centroids = [(1.0, 2.0), (2.0, 3.0), (3.0, 4.0)]
 
     def mapper(self, _, line):
         # Split the line into fields using tabs
