@@ -35,9 +35,15 @@ class KMeansMR(MRJob):
             total_points = [sum(x) for x in zip(total_points, point)]
             total_count += count
 
-        # Calculate the new centroid
-        centroid = [x / total_count for x in total_points]
-        yield None, (cluster_id, centroid)
+        # Check if total_count is zero before calculating the new centroid
+        if total_count > 0:
+            # Calculate the new centroid
+            centroid = [x / total_count for x in total_points]
+            yield None, (cluster_id, centroid)
+        else:
+            # Handle the case where there are no points in the cluster
+            # You can emit a special value, skip this cluster, or handle it in another way
+            pass
 
     def centroid_mapper(self, _, cluster_data):
         # Emit each cluster's centroid as the new key
