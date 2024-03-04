@@ -43,8 +43,8 @@ class KMeansMR(MRJob):
             yield None, (cluster_id, centroid)
         else:
             # Handle the case where there are no points in the cluster
-            # You can emit a special value, skip this cluster, or handle it in another way
-            pass
+            # For example, you can emit a special value or log a message
+            yield None, (cluster_id, None)  # Emit a special value or None
 
     def centroid_mapper(self, _, cluster_data):
         # Emit each cluster's centroid as the new key
@@ -57,10 +57,9 @@ class KMeansMR(MRJob):
         min_centroid = None
 
         for data in centroids:
-            c_id, centroid = data
-            if min_cluster_id is None or c_id < min_cluster_id:
-                min_cluster_id = c_id
-                min_centroid = centroid
+            if min_cluster_id is None or data[0] < min_cluster_id:
+                min_cluster_id = data[0]
+                min_centroid = data[1]
 
         yield min_cluster_id, min_centroid
 
