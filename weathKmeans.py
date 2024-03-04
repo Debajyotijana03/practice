@@ -1,7 +1,6 @@
 from mrjob.job import MRJob
 from mrjob.step import MRStep
 import json
-import random
 
 class KMeansMR(MRJob):
     def steps(self):
@@ -26,11 +25,17 @@ class KMeansMR(MRJob):
 
     def mapper(self, _, line):
         # Parse the CSV line
-        data = list(map(float, line.strip().split(',')))
+        data = line.strip().split(',')
 
-        # Assign each data point to the nearest centroid
-        closest_centroid = min(self.centroids, key=lambda c: sum((x - y) ** 2 for x, y in zip(data, self.centroids[c])))
-        yield closest_centroid, (data, 1)
+        try:
+            # Try to convert numerical values to float
+            numerical_data = [float(value) for value in data[9:]]  # Assuming the numerical data starts from index 9
+            # Assign each data point to the nearest centroid
+            closest_centroid = min(self.centroids, key=lambda c: sum((x - y) ** 2 for x, y in zip(numerical_data, self.centroids[c])))
+            yield closest_centroid, (numerical_data, 1)
+        except ValueError as e:
+            # Handle the case where conversion to float fails
+            print("Skipping line due to ValueError: %s" % e)
 
     def combiner(self, key, values):
         # Combine the features for each cluster (key)
