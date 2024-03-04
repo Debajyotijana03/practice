@@ -56,7 +56,8 @@ class KMeansMR(MRJob):
         min_cluster_id = None
         min_centroid = None
 
-        for c_id, centroid in centroids:
+        for data in centroids:
+            c_id, centroid = data
             if min_cluster_id is None or c_id < min_cluster_id:
                 min_cluster_id = c_id
                 min_centroid = centroid
