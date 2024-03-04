@@ -1,6 +1,5 @@
 from mrjob.job import MRJob
 from mrjob.step import MRStep
-import math
 
 class KMeansMR(MRJob):
 
@@ -21,8 +20,8 @@ class KMeansMR(MRJob):
         if line.startswith("Data.Temperature.Avg"):
             return
 
-        # Parse the input data
-        attributes = list(map(float, line.split()))
+        # Parse the input data (comma-separated)
+        attributes = list(map(float, line.split(',')))
         # Assuming the first attribute is the cluster ID
         cluster_id = int(attributes[0])
         yield cluster_id, (attributes[1:], 1)
