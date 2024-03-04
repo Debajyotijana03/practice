@@ -1,20 +1,18 @@
 from mrjob.job import MRJob
 from mrjob.step import MRStep
 import json
-import random
 
 class KMeansMR(MRJob):
-
-    def configure_args(self):
-        super(KMeansMR, self).configure_args()
-        self.add_passthru_arg('--k', type=int, default=3, help='Number of clusters (k)')
-        self.add_passthru_arg('--iterations', type=int, default=10, help='Number of iterations')
-
     def steps(self):
         return [
             MRStep(mapper_init=self.mapper_init, mapper=self.mapper, combiner=self.combiner, reducer=self.reducer),
             MRStep(reducer=self.final_reducer)
         ]
+
+    def configure_args(self):
+        super(KMeansMR, self).configure_args()
+        self.add_passthru_arg('--k', type=int, default=3, help='Number of clusters (k)')
+        self.add_passthru_arg('--iterations', type=int, default=10, help='Number of iterations')
 
     def mapper_init(self):
         # Load centroids from the initial centroids file or generate random centroids
@@ -22,23 +20,19 @@ class KMeansMR(MRJob):
         try:
             with open(centroids_path, 'r') as f:
                 self.centroids = json.load(f)
-        except Exception as e:
-            self.centroids = self.generate_random_centroids()
-
-    def generate_random_centroids(self):
-        # Generate random centroids if the file is not found
-        centroids = {}
-        for _ in range(self.options.k):
-            centroid = [random.uniform(0, 100) for _ in range(14)]  # Assuming 14 features in the data
-            centroids[str(_)] = centroid
-        return centroids
+        except FileNotFoundError:
+            self.centroids = None
 
     def mapper(self, _, line):
-        data = list(map(float, line.strip().split(',')))
+        # Parse the CSV line
+        data = list(map(float, line.strip().split(',')[-5:]))
+
+        # Assign each data point to the nearest centroid
         closest_centroid = min(self.centroids, key=lambda c: sum((x - y) ** 2 for x, y in zip(data, self.centroids[c])))
         yield closest_centroid, (data, 1)
 
     def combiner(self, key, values):
+        # Combine the features for each cluster (key)
         combined_features = [0.0] * len(next(values)[0])
         count = 0
 
@@ -49,6 +43,7 @@ class KMeansMR(MRJob):
         yield key, (combined_features, count)
 
     def reducer(self, key, values):
+        # Aggregate the combined features and counts
         combined_features = [0.0] * len(next(values)[0])
         count = 0
 
@@ -56,10 +51,12 @@ class KMeansMR(MRJob):
             combined_features = [x + y for x, y in zip(combined_features, features)]
             count += count_in_cluster
 
+        # Calculate the new centroid
         new_centroid = [x / count for x in combined_features]
         yield None, (key, new_centroid)
 
     def final_reducer(self, _, values):
+        # Output the final centroids
         k = self.options.k
         centroids = dict(sorted(values, key=lambda x: x[0])[:k])
         yield None, centroids
