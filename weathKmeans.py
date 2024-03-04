@@ -20,11 +20,9 @@ class KMeansMR(MRJob):
         if line.startswith("Data.Temperature.Avg"):
             return
 
-        # Parse the input data (comma-separated)
-        attributes = list(map(float, line.split(',')))
-        # Assuming the first attribute is the cluster ID
-        cluster_id = int(attributes[0])
-        yield cluster_id, (attributes[1:], 1)
+        # Split the input data into cluster ID and attributes
+        cluster_id, *attributes = map(float, line.split(','))
+        yield int(cluster_id), (attributes, 1)
 
     def reducer(self, cluster_id, points):
         # Aggregate points for each cluster
@@ -50,12 +48,13 @@ class KMeansMR(MRJob):
         cluster_id, centroid = cluster_data
         yield cluster_id, centroid
 
-    def centroid_reducer(self, cluster_id, centroids):
+    def centroid_reducer(self, _, centroids):
         # Choose the centroid with the lowest cluster ID as the final centroid
         min_cluster_id = None
         min_centroid = None
 
-        for c_id, centroid in centroids:
+        for cluster_data in centroids:
+            c_id, centroid = cluster_data
             if min_cluster_id is None or c_id < min_cluster_id:
                 min_cluster_id = c_id
                 min_centroid = centroid
