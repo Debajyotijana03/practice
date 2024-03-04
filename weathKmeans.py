@@ -26,6 +26,10 @@ class KMeansMR(MRJob):
             self.centroids = None
 
     def mapper(self, _, line):
+        # Skip the header line
+        if line.startswith("Data.Precipitation"):
+            return
+
         # Parse the CSV line
         data = list(map(float, line.strip().split(',')))
 
