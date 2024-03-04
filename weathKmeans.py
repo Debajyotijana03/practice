@@ -21,8 +21,10 @@ class KMeansMR(MRJob):
             return
 
         # Split the input data into cluster ID and attributes
-        cluster_id, *attributes = map(float, line.split(','))
-        yield int(cluster_id), (attributes, 1)
+        attributes = list(map(float, line.split(',')))
+        # Assuming the first attribute is the cluster ID
+        cluster_id = int(attributes[0])
+        yield cluster_id, (attributes[1:], 1)
 
     def reducer(self, cluster_id, points):
         # Aggregate points for each cluster
@@ -30,7 +32,8 @@ class KMeansMR(MRJob):
         total_count = 0
 
         for point, count in points:
-            total_points = [sum(x) for x in zip(total_points, point)]
+            for i in range(len(total_points)):
+                total_points[i] += point[i]
             total_count += count
 
         # Check if total_count is zero before calculating the new centroid
@@ -53,16 +56,10 @@ class KMeansMR(MRJob):
         min_cluster_id = None
         min_centroid = None
 
-        if isinstance(centroids, tuple):
-            c_id, centroid = centroids
-            min_cluster_id = c_id
-            min_centroid = centroid
-        else:
-            for cluster_data in centroids:
-                c_id, centroid = cluster_data
-                if min_cluster_id is None or c_id < min_cluster_id:
-                    min_cluster_id = c_id
-                    min_centroid = centroid
+        for c_id, centroid in centroids:
+            if min_cluster_id is None or c_id < min_cluster_id:
+                min_cluster_id = c_id
+                min_centroid = centroid
 
         yield min_cluster_id, min_centroid
 
