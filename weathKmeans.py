@@ -26,12 +26,12 @@ class KMeansMR(MRJob):
             self.centroids = None
 
     def mapper(self, _, line):
-        # Skip the header line
-        if line.startswith("Data.Precipitation"):
+        try:
+            # Attempt to parse the CSV line
+            data = list(map(float, line.strip().split(',')))
+        except ValueError:
+            # If parsing fails, skip the line
             return
-
-        # Parse the CSV line
-        data = list(map(float, line.strip().split(',')))
 
         # Assign each data point to the nearest centroid
         closest_centroid = min(self.centroids, key=lambda c: sum((x - y) ** 2 for x, y in zip(data, self.centroids[c])))
