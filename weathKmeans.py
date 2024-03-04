@@ -1,6 +1,7 @@
 from mrjob.job import MRJob
 from mrjob.step import MRStep
 import json
+import random
 
 class KMeansMR(MRJob):
     def steps(self):
@@ -25,10 +26,8 @@ class KMeansMR(MRJob):
 
     def mapper(self, _, line):
         # Parse the CSV line
-        # Assuming the last 5 elements are numeric and need to be considered for clustering
-        # Ignoring the first element which is not numeric
-        data = list(map(float, line.strip().split(',')[9:]))
-    
+        data = list(map(float, line.strip().split(',')))
+
         # Assign each data point to the nearest centroid
         closest_centroid = min(self.centroids, key=lambda c: sum((x - y) ** 2 for x, y in zip(data, self.centroids[c])))
         yield closest_centroid, (data, 1)
