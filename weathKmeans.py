@@ -1,6 +1,7 @@
 from mrjob.job import MRJob
 from mrjob.step import MRStep
 import json
+import random
 
 class KMeansMR(MRJob):
     def steps(self):
@@ -35,37 +36,49 @@ class KMeansMR(MRJob):
             yield closest_centroid, (numerical_data, 1)
         except ValueError as e:
             # Handle the case where conversion to float fails
-            print("Skipping line due to ValueError: %s" % e)
+            print(f"Skipping line due to ValueError: {e}")
 
     def combiner(self, key, values):
-        # Combine the features for each cluster (key)
-        combined_features = [0.0] * len(next(values, ([], 0))[0])
-        count = 0
+        try:
+            # Combine the features for each cluster (key)
+            combined_features = [0.0] * len(next(values, ([], 0))[0])
+            count = 0
 
-        for features, count_in_cluster in values:
-            combined_features = [x + y for x, y in zip(combined_features, features)]
-            count += count_in_cluster
+            for features, count_in_cluster in values:
+                combined_features = [x + y for x, y in zip(combined_features, features)]
+                count += count_in_cluster
 
-        yield key, (combined_features, count)
+            yield key, (combined_features, count)
+        except Exception as e:
+            # Handle unexpected input
+            print("Error in combiner:", e)
 
     def reducer(self, key, values):
-        # Aggregate the combined features and counts
-        combined_features = [0.0] * len(next(values, ([], 0))[0])
-        count = 0
+        try:
+            # Aggregate the combined features and counts
+            combined_features = [0.0] * len(next(values, ([], 0))[0])
+            count = 0
 
-        for features, count_in_cluster in values:
-            combined_features = [x + y for x, y in zip(combined_features, features)]
-            count += count_in_cluster
+            for features, count_in_cluster in values:
+                combined_features = [x + y for x, y in zip(combined_features, features)]
+                count += count_in_cluster
 
-        # Calculate the new centroid
-        new_centroid = [x / count for x in combined_features]
-        yield None, (key, new_centroid)
+            # Calculate the new centroid
+            new_centroid = [x / count for x in combined_features]
+            yield None, (key, new_centroid)
+        except Exception as e:
+            # Handle unexpected input
+            print("Error in reducer:", e)
 
     def final_reducer(self, _, values):
-        # Output the final centroids
-        k = self.options.k
-        centroids = dict(sorted(values, key=lambda x: x[0])[:k])
-        yield None, centroids
+        try:
+            # Output the final centroids
+            k = self.options.k
+            centroids = dict(sorted(values, key=lambda x: x[0])[:k])
+            yield None, centroids
+        except Exception as e:
+            # Handle unexpected input
+            print("Error in final_reducer:", e)
 
 if __name__ == '__main__':
     KMeansMR.run()
