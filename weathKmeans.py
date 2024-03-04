@@ -17,6 +17,10 @@ class KMeansMR(MRJob):
         ]
 
     def mapper(self, _, line):
+        # Skip the header line
+        if line.startswith("Data.Temperature.Avg"):
+            return
+
         # Parse the input data
         attributes = list(map(float, line.split()))
         # Assuming the first attribute is the cluster ID
