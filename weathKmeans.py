@@ -39,7 +39,7 @@ class KMeansMR(MRJob):
 
     def combiner(self, key, values):
         # Combine the features for each cluster (key)
-        combined_features = [0.0] * len(next(values)[0])
+        combined_features = [0.0] * len(next(values, ([], 0))[0])
         count = 0
 
         for features, count_in_cluster in values:
@@ -50,7 +50,7 @@ class KMeansMR(MRJob):
 
     def reducer(self, key, values):
         # Aggregate the combined features and counts
-        combined_features = [0.0] * len(next(values)[0])
+        combined_features = [0.0] * len(next(values, ([], 0))[0])
         count = 0
 
         for features, count_in_cluster in values:
