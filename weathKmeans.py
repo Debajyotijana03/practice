@@ -22,7 +22,7 @@ class KMeansMR(MRJob):
         try:
             with open(centroids_path, 'r') as f:
                 self.centroids = json.load(f)
-        except FileNotFoundError:
+        except IOError:
             self.centroids = self.generate_random_centroids()
 
     def generate_random_centroids(self):
