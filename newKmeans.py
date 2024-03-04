@@ -42,7 +42,6 @@ class KMeansMR(MRJob):
             yield None, (cluster_id, centroid)
         else:
             # Handle the case where there are no points in the cluster
-            # You can emit a special value, skip this cluster, or handle it in another way
             pass
 
     def centroid_mapper(self, _, cluster_data):
@@ -52,15 +51,12 @@ class KMeansMR(MRJob):
 
     def centroid_reducer(self, cluster_id, centroids):
         # Choose the centroid with the lowest cluster ID as the final centroid
-        min_cluster_id = None
-        min_centroid = None
+        try:
+            min_cluster_id, min_centroid = min(centroids, key=lambda x: x[0])
+            yield min_cluster_id, min_centroid
+        except ValueError:
+            # Handle the case where there are no centroids
+            pass
 
-        for c_id, centroid in centroids:
-            if min_cluster_id is None or c_id < min_cluster_id:
-                min_cluster_id = c_id
-                min_centroid = centroid
-
-        yield min_cluster_id, min_centroid
-
-if __name__ == '__main__':
+if __name__ == '__main__': 
     KMeansMR.run()
