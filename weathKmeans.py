@@ -20,7 +20,7 @@ class KMeansMR(MRJob):
         try:
             with open(centroids_path, 'r') as f:
                 self.centroids = json.load(f)
-        except FileNotFoundError:
+        except IOError:
             self.centroids = None
 
     def mapper(self, _, line):
