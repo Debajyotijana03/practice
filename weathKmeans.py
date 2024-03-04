@@ -53,11 +53,16 @@ class KMeansMR(MRJob):
         min_cluster_id = None
         min_centroid = None
 
-        for cluster_data in centroids:
-            c_id, centroid = cluster_data
-            if min_cluster_id is None or c_id < min_cluster_id:
-                min_cluster_id = c_id
-                min_centroid = centroid
+        if isinstance(centroids, tuple):
+            c_id, centroid = centroids
+            min_cluster_id = c_id
+            min_centroid = centroid
+        else:
+            for cluster_data in centroids:
+                c_id, centroid = cluster_data
+                if min_cluster_id is None or c_id < min_cluster_id:
+                    min_cluster_id = c_id
+                    min_centroid = centroid
 
         yield min_cluster_id, min_centroid
 
