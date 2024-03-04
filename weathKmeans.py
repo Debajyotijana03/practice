@@ -2,6 +2,7 @@ from mrjob.job import MRJob
 from mrjob.step import MRStep
 import json
 import random
+import os
 
 class KMeansMR(MRJob):
     def steps(self):
@@ -21,7 +22,7 @@ class KMeansMR(MRJob):
         try:
             with open(centroids_path, 'r') as f:
                 self.centroids = json.load(f)
-        except FileNotFoundError:
+        except IOError:
             self.centroids = None
 
     def mapper(self, _, line):
