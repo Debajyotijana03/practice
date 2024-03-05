@@ -3,7 +3,7 @@ from math import sqrt
 
 # Function to calculate Euclidean distance between two points
 def euclidean_distance(point1, point2):
-    return sqrt(sum((x - y) ** 2 for x, y in zip(point1, point2)))
+    return sqrt(sum((x - y) ** 2 for x, y in izip(point1, point2)))
 
 # Function to parse initial centroids
 def parse_centroids(centroid_string):
@@ -12,12 +12,12 @@ def parse_centroids(centroid_string):
 
 class MRKMeans(MRJob):
 
-    # Initialize job
     def __init__(self, *args, **kwargs):
         super(MRKMeans, self).__init__(*args, **kwargs)
         self.centroids = {}
+        self.max_iterations = 10
+        self.current_iteration = 0
 
-    # Load initial centroids from file
     def mapper_init(self):
         # Initial centroids
         initial_centroids = {
@@ -27,21 +27,22 @@ class MRKMeans(MRJob):
         }
         self.centroids = initial_centroids
 
-    # Map each point to its nearest centroid
     def mapper(self, _, line):
         data = line.strip().split(',')
-        point_id, point = data[0], list(map(float, data[1:]))
-        
+        point_id, point = data[0], map(float, data[1:])
+
+        # Print input data for debugging
+        print "Mapper Input: %s, %s" % (point_id, point)
+
         # Calculate distances to centroids
         nearest_centroid = min(self.centroids.keys(),
                                key=lambda x: euclidean_distance(point, self.centroids[x]))
 
         yield nearest_centroid, (point, 1)
 
-    # Reduce: Update centroids based on new cluster points
     def reducer(self, centroid_id, points):
         count = 0
-        centroid_sum = [0] * len(self.centroids.get(centroid_id, []))
+        centroid_sum = [0] * len(self.centroids[centroid_id])
 
         for point, c in points:
             count += c
@@ -51,7 +52,13 @@ class MRKMeans(MRJob):
         new_centroid = [x / count for x in centroid_sum]
         self.centroids[centroid_id] = new_centroid
 
+        # Print updated centroids for debugging
+        print "Reducer Output: %s, %s" % (centroid_id, new_centroid)
+
         yield centroid_id, new_centroid
+
+    def steps(self):
+        return [self.mr(mapper_init=self.mapper_init, mapper=self.mapper, reducer=self.reducer)] * self.max_iterations
 
 if __name__ == '__main__':
     MRKMeans.run()
