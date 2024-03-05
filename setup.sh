@@ -10,9 +10,9 @@ sudo rm /usr/lib/flume-ng/lib/derby-10.8.2.2.jar
 gzip -d *.csv.gz
 
 # Download and install Anaconda for Pandas, Jupyter
-rm -f Anaconda3-2020.07-Linux-x86_64.sh
-wget https://repo.anaconda.com/archive/Anaconda3-2020.07-Linux-x86_64.sh
-bash Anaconda3-2020.07-Linux-x86_64.sh
+rm -f Anaconda3-2024.02-1-Linux-x86_64.sh
+wget https://repo.anaconda.com/archive/Anaconda3-2024.02-1-Linux-x86_64.sh
+bash Anaconda3-2024.02-1-Linux-x86_64.sh
 
 # Add Spark CSV JARs to the classpath
 echo export SPARK_CLASSPATH="$(pwd)/lib/spark-csv_2.10-1.5.0.jar:$(pwd)/lib/commons-csv-1.1.jar" >> ~/.bashrc
