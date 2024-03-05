@@ -1,9 +1,10 @@
 from mrjob.job import MRJob
 from math import sqrt
+import sys
 
 # Function to calculate Euclidean distance between two points
 def euclidean_distance(point1, point2):
-    return sqrt(sum((x - y) ** 2 for x, y in izip(point1, point2)))
+    return sqrt(sum((x - y) ** 2 for x, y in zip(point1, point2)))
 
 # Function to parse initial centroids
 def parse_centroids(centroid_string):
@@ -18,21 +19,20 @@ class MRKMeans(MRJob):
         self.max_iterations = 10
         self.current_iteration = 0
 
+    def configure_options(self):
+        super(MRKMeans, self).configure_options()
+        self.add_file_option('--centroids', help='Path to the centroids file')
+
     def mapper_init(self):
-        # Initial centroids
-        initial_centroids = {
-            'A1': [2, 10],
-            'B1': [5, 8],
-            'C1': [1, 2]
-        }
-        self.centroids = initial_centroids
+        # Load initial centroids from the file specified in the command line
+        with open(self.options.centroids, 'r') as centroids_file:
+            for line in centroids_file:
+                centroid_id, centroid_values = parse_centroids(line.strip())
+                self.centroids[centroid_id] = centroid_values
 
     def mapper(self, _, line):
         data = line.strip().split(',')
-        point_id, point = data[0], map(float, data[1:])
-
-        # Print input data for debugging
-        print "Mapper Input: %s, %s" % (point_id, point)
+        point_id, point = data[0], list(map(float, data[1:]))
 
         # Calculate distances to centroids
         nearest_centroid = min(self.centroids.keys(),
@@ -51,9 +51,6 @@ class MRKMeans(MRJob):
 
         new_centroid = [x / count for x in centroid_sum]
         self.centroids[centroid_id] = new_centroid
-
-        # Print updated centroids for debugging
-        print "Reducer Output: %s, %s" % (centroid_id, new_centroid)
 
         yield centroid_id, new_centroid
 
