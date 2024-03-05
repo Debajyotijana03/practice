@@ -37,10 +37,11 @@ class MRKMeans(MRJob):
     def reducer(self, centroid_id, points):
         count = 0
         centroid_sum = [0] * len(self.centroids[centroid_id])
+        point_dimensions = len(centroid_sum)
 
         for point, c in points:
             count += c
-            for i in range(len(centroid_sum)):
+            for i in range(point_dimensions):
                 centroid_sum[i] += point[i]
 
         new_centroid = [x / count for x in centroid_sum]
