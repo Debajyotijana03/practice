@@ -1,6 +1,5 @@
 from mrjob.job import MRJob
 from math import sqrt
-import sys
 
 # Function to calculate Euclidean distance between two points
 def euclidean_distance(point1, point2):
@@ -19,15 +18,12 @@ class MRKMeans(MRJob):
         self.max_iterations = 10
         self.current_iteration = 0
 
-    def configure_options(self):
-        super(MRKMeans, self).configure_options()
-        self.add_file_option('--centroids', help='Path to the centroids file')
-
     def mapper_init(self):
-        # Load initial centroids from the file specified in the command line
-        with open(self.options.centroids, 'r') as centroids_file:
-            for line in centroids_file:
-                centroid_id, centroid_values = parse_centroids(line.strip())
+        # Parse initial centroids from command-line argument
+        if self.options.centroids:
+            initial_centroid_strings = self.options.centroids.split(';')
+            for centroid_string in initial_centroid_strings:
+                centroid_id, centroid_values = parse_centroids(centroid_string)
                 self.centroids[centroid_id] = centroid_values
 
     def mapper(self, _, line):
