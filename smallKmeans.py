@@ -19,8 +19,6 @@ class MRKMeans(MRJob):
             'B1': [5, 8],
             'C1': [1, 2]
         }
-        self.max_iterations = 10
-        self.current_iteration = 0
 
     def mapper(self, _, line):
         data = line.strip().split(',')
@@ -32,6 +30,9 @@ class MRKMeans(MRJob):
 
         yield nearest_centroid, (point, 1)
 
+    def reducer_init(self):
+        self.converged = False
+
     def reducer(self, centroid_id, points):
         count = 0
         centroid_sum = [0] * len(self.centroids[centroid_id])
@@ -42,12 +43,17 @@ class MRKMeans(MRJob):
                 centroid_sum[i] += point[i]
 
         new_centroid = [x / count for x in centroid_sum]
-        self.centroids[centroid_id] = new_centroid
+
+        # Check for convergence
+        if new_centroid != self.centroids[centroid_id]:
+            self.converged = False
+            self.centroids[centroid_id] = new_centroid
 
         yield centroid_id, new_centroid
 
     def steps(self):
-        return [self.mr(mapper=self.mapper, reducer=self.reducer)] * self.max_iterations
+        while not self.converged:
+            yield self.mr(mapper=self.mapper, reducer_init=self.reducer_init, reducer=self.reducer)
 
 if __name__ == '__main__':
     MRKMeans().run()
