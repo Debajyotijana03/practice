@@ -3,16 +3,16 @@
 # Upgrade Spark Python to work with Python 3
 sudo yum upgrade -y spark-python hive
 
-# Remove old Derby JAR so only one version is on Spark's classpath
-sudo rm /usr/lib/flume-ng/lib/derby-10.8.2.2.jar
+# Remove old Derby JAR if it exists
+sudo [ -e /usr/lib/flume-ng/lib/derby-10.8.2.2.jar ] && sudo rm /usr/lib/flume-ng/lib/derby-10.8.2.2.jar
 
-# Decompress datasets
-gzip -d *.csv.gz
+# Decompress datasets if they exist
+gzip -d *.csv.gz 2>/dev/null
 
 # Download and install Anaconda for Pandas, Jupyter
-rm -f Anaconda3-2024.02-1-Linux-x86_64.sh
-wget https://repo.anaconda.com/archive/Anaconda3-2024.02-1-Linux-x86_64.sh
-bash Anaconda3-2024.02-1-Linux-x86_64.sh
+rm -f Anaconda3-2022.05-Linux-x86_64.sh
+wget https://repo.anaconda.com/archive/Anaconda3-2022.05-Linux-x86_64.sh
+bash Anaconda3-2022.05-Linux-x86_64.sh
 
 # Add Spark CSV JARs to the classpath
 echo export SPARK_CLASSPATH="$(pwd)/lib/spark-csv_2.10-1.5.0.jar:$(pwd)/lib/commons-csv-1.1.jar" >> ~/.bashrc
