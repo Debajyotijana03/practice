@@ -37,7 +37,7 @@ class MRKMeans(MRJob):
         yield nearest_centroid, (point, 1)
 
     def reducer_init(self):
-        self.converged = False
+        self.converged = True
 
     def reducer(self, centroid_id, points):
         count = 0
@@ -57,7 +57,6 @@ class MRKMeans(MRJob):
         # Check for convergence
         if new_centroid != self.centroids[centroid_id]:
             self.converged = False
-            self.centroids[centroid_id] = new_centroid
 
         yield centroid_id, new_centroid
 
@@ -74,20 +73,19 @@ if __name__ == '__main__':
         with mr_job.make_runner() as runner:
             runner.run()
 
+        # Update centroids for the next iteration
+        mr_job.centroids = {}
+
+        with open('output_file.txt', 'w') as output_file:
+            with mr_job.make_runner() as runner:
+                runner.run()
+                for line in runner.stream_output():
+                    key, value = mr_job.parse_output_line(line)
+                    mr_job.centroids[key] = value
+
         # Check if the job converged
         mr_job.converged = True
-        final_centroids = {}
 
-        with mr_job.make_runner() as runner:
-            runner.run()
-
-            for line in runner.stream_output():
-                key, value = mr_job.parse_output_line(line)
-                final_centroids[key] = value
-
-        # Update centroids for the next iteration
-        mr_job.centroids = final_centroids
-
-    # Print the final centroids
-    for centroid_id, final_centroid in mr_job.centroids.items():
-        print('{}\t{}'.format(centroid_id, final_centroid))
+        # Print the final centroids
+        for centroid_id, final_centroid in mr_job.centroids.items():
+            print('{}\t{}'.format(centroid_id, final_centroid))
