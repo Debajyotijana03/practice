@@ -41,6 +41,9 @@ class MRKMeans(MRJob):
 
         for point, c in points:
             count += c
+            # Ensure the point has the expected number of dimensions
+            point = point + [0] * (point_dimensions - len(point))
+
             for i in range(point_dimensions):
                 centroid_sum[i] += point[i]
 
