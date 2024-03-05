@@ -10,15 +10,23 @@ class MRKMeans(MRJob):
     def configure_options(self):
         super(MRKMeans, self).configure_options()
         self.add_passthrough_option('--k', default=2, type='int', help='Number of clusters (default: 2)')
+        self.add_file_option('--centroids', help='Path to the centroids file')
 
     def load_options(self, args):
         super(MRKMeans, self).load_options(args)
         self.k = self.options.k
-        self.centroids = {str(i): [0.0, 0.0] for i in range(self.k)}
+        self.centroids = {}
+
+    def mapper_init(self):
+        # Load initial centroids from the file specified in the command line
+        with open(self.options.centroids, 'r') as centroids_file:
+            for line in centroids_file:
+                centroid_id, centroid_values = line.strip().split(',')
+                self.centroids[centroid_id] = list(map(float, centroid_values.split()))
 
     def mapper(self, _, line):
         data = line.strip().split(',')
-        point = list(map(float, data))
+        point = list(map(float, data[1:]))
         
         # Calculate distances to centroids
         nearest_centroid = min(self.centroids.keys(),
@@ -28,7 +36,7 @@ class MRKMeans(MRJob):
 
     def reducer(self, centroid_id, points):
         count = 0
-        centroid_sum = [0.0, 0.0]
+        centroid_sum = [0.0] * len(self.centroids[centroid_id])
 
         for point, c in points:
             count += c
