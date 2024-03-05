@@ -14,17 +14,13 @@ class MRKMeans(MRJob):
 
     def __init__(self, *args, **kwargs):
         super(MRKMeans, self).__init__(*args, **kwargs)
-        self.centroids = {}
+        self.centroids = {
+            'A1': [2, 10],
+            'B1': [5, 8],
+            'C1': [1, 2]
+        }
         self.max_iterations = 10
         self.current_iteration = 0
-
-    def mapper_init(self):
-        # Parse initial centroids from command-line argument
-        if self.options.centroids:
-            initial_centroid_strings = self.options.centroids.split(';')
-            for centroid_string in initial_centroid_strings:
-                centroid_id, centroid_values = parse_centroids(centroid_string)
-                self.centroids[centroid_id] = centroid_values
 
     def mapper(self, _, line):
         data = line.strip().split(',')
@@ -51,7 +47,7 @@ class MRKMeans(MRJob):
         yield centroid_id, new_centroid
 
     def steps(self):
-        return [self.mr(mapper_init=self.mapper_init, mapper=self.mapper, reducer=self.reducer)] * self.max_iterations
+        return [self.mr(mapper=self.mapper, reducer=self.reducer)] * self.max_iterations
 
 if __name__ == '__main__':
     MRKMeans.run()
