@@ -46,9 +46,8 @@ class MRKMeans(MRJob):
 
         yield centroid_id, new_centroid
 
-    @property
     def steps(self):
         return [self.mr(mapper=self.mapper, reducer=self.reducer)] * self.max_iterations
 
 if __name__ == '__main__':
-    MRKMeans.run()
+    MRKMeans().run()
