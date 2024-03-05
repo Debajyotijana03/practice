@@ -20,6 +20,7 @@ class MRKMeans(MRJob):
             'B1': [5, 8],
             'C1': [1, 2]
         }
+        self.converged = False
 
     def mapper(self, _, line):
         data = line.strip().split(',')
@@ -62,4 +63,23 @@ class MRKMeans(MRJob):
         ]
 
 if __name__ == '__main__':
-    MRKMeans().run()
+    mr_job = MRKMeans(args=['input_data.txt'])
+
+    # Run the job until convergence
+    while not mr_job.converged:
+        with mr_job.make_runner() as runner:
+            runner.run()
+
+        # Check if the job converged
+        mr_job.converged = True
+        for centroid_id, new_centroid in mr_job.steps():
+            if new_centroid != mr_job.centroids[centroid_id]:
+                mr_job.converged = False
+                break
+
+        # Update centroids for the next iteration
+        mr_job.centroids = dict(mr_job.steps())
+
+    # Print the final centroids
+    for centroid_id, final_centroid in mr_job.centroids.items():
+        print('{}\t{}'.format(centroid_id, final_centroid))
