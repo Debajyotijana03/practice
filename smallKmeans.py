@@ -22,10 +22,6 @@ class MRKMeans(MRJob):
         }
         self.converged = False
 
-    def configure_options(self):
-        super(MRKMeans, self).configure_options()
-        self.add_file_option('--centroids', help='Path to the centroids file')
-
     def mapper(self, _, line):
         data = line.strip().split(',')
         point_id, point = data[0], list(map(float, data[1:]))
@@ -66,7 +62,7 @@ class MRKMeans(MRJob):
         ]
 
 if __name__ == '__main__':
-    mr_job = MRKMeans(args=['input_data.txt', '--centroids', 'your_centroids_file.txt'])
+    mr_job = MRKMeans(args=['input_data.txt'])
 
     # Run the job until convergence
     while not mr_job.converged:
