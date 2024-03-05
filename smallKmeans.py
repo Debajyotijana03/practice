@@ -1,4 +1,5 @@
 from mrjob.job import MRJob
+from mrjob.step import MRStep
 from math import sqrt
 
 # Function to calculate Euclidean distance between two points
@@ -52,8 +53,9 @@ class MRKMeans(MRJob):
         yield centroid_id, new_centroid
 
     def steps(self):
-        while not self.converged:
-            yield self.mr(mapper=self.mapper, reducer_init=self.reducer_init, reducer=self.reducer)
+        return [
+            MRStep(mapper=self.mapper, reducer_init=self.reducer_init, reducer=self.reducer)
+        ]
 
 if __name__ == '__main__':
     MRKMeans().run()
