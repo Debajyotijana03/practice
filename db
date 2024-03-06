@@ -1,0 +1,22 @@
+from sklearn.cluster import DBSCAN
+from sklearn.preprocessing import StandardScaler
+import pandas as pd
+
+# Assuming 'features' is a DataFrame with the features you want to cluster
+# and 'eps', 'min_samples' are parameters for DBSCAN
+eps = 0.5
+min_samples = 5
+
+# Standardize the features
+scaler = StandardScaler()
+scaled_features = scaler.fit_transform(features)
+
+# Apply DBSCAN
+dbscan = DBSCAN(eps=eps, min_samples=min_samples)
+labels = dbscan.fit_predict(scaled_features)
+
+# Convert to a Pandas DataFrame for visualization
+df_result = pd.DataFrame(data=scaled_features, columns=features.columns)
+df_result['cluster_label'] = labels
+
+# Visualize the results or perform further analysis
